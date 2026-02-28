@@ -5,7 +5,9 @@
       "Bash(npm install:*)",
       "Bash(timeout 15 head:*)",
       "Bash(npx vite:*)",
-      "Bash(npm run client:*)"
+      "Bash(npm run client:*)",
+      "Bash(ssh -o StrictHostKeyChecking=no file.minigrow \"mkdir -p /project && cd /project && git clone https://github.com/PrincessJudy/file.minigrow.git file_minigrow 2>&1 || \\(cd /project/file_minigrow && git pull origin main 2>&1\\)\")",
+      "Bash(git add:*)"
     ]
   }
 }
