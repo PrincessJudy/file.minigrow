@@ -1,0 +1,53 @@
+{
+  "name": "file.minigrow",
+  "version": "1.0.0",
+  "description": "Bucket File Management Service with AWS S3 Compatible API",
+  "main": "start.js",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "client": "vite",
+    "server": "node appService/execute.js local",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server:dev": "node appService/execute.js dev",
+    "server:prd": "node appService/execute.js prd"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PrincessJudy/file.minigrow.git"
+  },
+  "keywords": [
+    "aws",
+    "s3",
+    "storage",
+    "file-manager",
+    "iwinv"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1000.0",
+    "@aws-sdk/lib-storage": "^3.1000.0",
+    "@aws-sdk/s3-request-presigner": "^3.1000.0",
+    "axios": "^1.13.6",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "lucide-react": "^0.575.0",
+    "multer": "^2.1.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.1",
+    "recoil": "^0.7.7",
+    "styled-components": "^6.3.11"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/styled-components": "^5.1.36",
+    "@vitejs/plugin-react": "^5.1.4",
+    "concurrently": "^8.2.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  }
+}

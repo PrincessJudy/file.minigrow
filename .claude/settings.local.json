@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm init -y)",
+      "Bash(npm install:*)",
+      "Bash(timeout 15 head:*)",
+      "Bash(npx vite:*)",
+      "Bash(npm run client:*)"
+    ]
+  }
+}
