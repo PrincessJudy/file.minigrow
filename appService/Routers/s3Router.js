@@ -214,7 +214,7 @@ router.post('/upload-multiple', upload.array('files', 100), async (req, res) => 
 })
 
 // Download file (get presigned URL)
-router.get('/download/:key(*)', async (req, res) => {
+router.get('/download/*key', async (req, res) => {
   try {
     const { key } = req.params
     const s3 = getS3Client()
@@ -235,7 +235,7 @@ router.get('/download/:key(*)', async (req, res) => {
 })
 
 // Stream download
-router.get('/stream/:key(*)', async (req, res) => {
+router.get('/stream/*key', async (req, res) => {
   try {
     const { key } = req.params
     const s3 = getS3Client()
@@ -259,7 +259,7 @@ router.get('/stream/:key(*)', async (req, res) => {
 })
 
 // Delete file
-router.delete('/objects/:key(*)', async (req, res) => {
+router.delete('/objects/*key', async (req, res) => {
   try {
     const { key } = req.params
     const s3 = getS3Client()

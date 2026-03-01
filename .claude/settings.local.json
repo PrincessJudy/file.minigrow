@@ -7,7 +7,11 @@
       "Bash(npx vite:*)",
       "Bash(npm run client:*)",
       "Bash(ssh -o StrictHostKeyChecking=no file.minigrow \"mkdir -p /project && cd /project && git clone https://github.com/PrincessJudy/file.minigrow.git file_minigrow 2>&1 || \\(cd /project/file_minigrow && git pull origin main 2>&1\\)\")",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(ssh file.minigrow \"cd /project && rm -rf file_minigrow && git clone https://github.com/PrincessJudy/file.minigrow.git file_minigrow && cd file_minigrow && ls -la\")",
+      "Bash(sshpass -p 'Ants0814#C#' ssh -o StrictHostKeyChecking=no root@115.68.230.84 \"cd /project && rm -rf file_minigrow && git clone https://github.com/PrincessJudy/file.minigrow.git file_minigrow && cd file_minigrow && ls -la\")",
+      "Bash(ssh:*)"
     ]
   }
 }
