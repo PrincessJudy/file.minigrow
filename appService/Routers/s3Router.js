@@ -34,6 +34,9 @@ const getS3Client = () => {
 
 const BUCKET = process.env.AWS_BUCKET || 'file.minigrow.kr'
 
+// 유저별 용량 제한 (100MB)
+const USER_STORAGE_LIMIT = 100 * 1024 * 1024 // 100MB in bytes
+
 // Check S3 connection
 const checkConnection = async () => {
   try {
@@ -73,6 +76,140 @@ router.get('/bucket', async (req, res) => {
     })
   } catch (error) {
     console.error('Get bucket info error:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// Get user storage usage (유저별 용량 사용량 조회)
+router.get('/usage/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' })
+    }
+
+    const s3 = getS3Client()
+    const prefix = `users/${userId}/`
+
+    // 유저 폴더 내 모든 파일 조회 (페이지네이션 처리)
+    let totalSize = 0
+    let fileCount = 0
+    let continuationToken = null
+
+    do {
+      const command = new ListObjectsV2Command({
+        Bucket: BUCKET,
+        Prefix: prefix,
+        MaxKeys: 1000,
+        ContinuationToken: continuationToken
+      })
+
+      const response = await s3.send(command)
+
+      if (response.Contents) {
+        for (const obj of response.Contents) {
+          totalSize += obj.Size || 0
+          fileCount++
+        }
+      }
+
+      continuationToken = response.IsTruncated ? response.NextContinuationToken : null
+    } while (continuationToken)
+
+    const usagePercent = (totalSize / USER_STORAGE_LIMIT) * 100
+
+    res.json({
+      userId,
+      usedBytes: totalSize,
+      usedMB: (totalSize / (1024 * 1024)).toFixed(2),
+      limitBytes: USER_STORAGE_LIMIT,
+      limitMB: (USER_STORAGE_LIMIT / (1024 * 1024)).toFixed(0),
+      usagePercent: usagePercent.toFixed(1),
+      fileCount,
+      isOverLimit: totalSize > USER_STORAGE_LIMIT,
+      remainingBytes: Math.max(0, USER_STORAGE_LIMIT - totalSize),
+      remainingMB: Math.max(0, (USER_STORAGE_LIMIT - totalSize) / (1024 * 1024)).toFixed(2)
+    })
+  } catch (error) {
+    console.error('Get user storage usage error:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// Upload file for user (유저별 폴더에 파일 업로드 + 용량 체크)
+router.post('/user-upload/:userId', upload.single('file'), async (req, res) => {
+  try {
+    const { userId } = req.params
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' })
+    }
+
+    const s3 = getS3Client()
+
+    // 현재 사용량 확인
+    const prefix = `users/${userId}/`
+    let currentUsage = 0
+    let continuationToken = null
+
+    do {
+      const listCommand = new ListObjectsV2Command({
+        Bucket: BUCKET,
+        Prefix: prefix,
+        MaxKeys: 1000,
+        ContinuationToken: continuationToken
+      })
+
+      const listResponse = await s3.send(listCommand)
+
+      if (listResponse.Contents) {
+        for (const obj of listResponse.Contents) {
+          currentUsage += obj.Size || 0
+        }
+      }
+
+      continuationToken = listResponse.IsTruncated ? listResponse.NextContinuationToken : null
+    } while (continuationToken)
+
+    // 용량 초과 체크
+    if (currentUsage + req.file.size > USER_STORAGE_LIMIT) {
+      return res.status(413).json({
+        error: 'Storage limit exceeded',
+        currentUsage,
+        fileSize: req.file.size,
+        limit: USER_STORAGE_LIMIT,
+        message: `용량 한도(${(USER_STORAGE_LIMIT / (1024 * 1024)).toFixed(0)}MB)를 초과합니다. 현재 사용량: ${(currentUsage / (1024 * 1024)).toFixed(2)}MB`
+      })
+    }
+
+    const { folder = '' } = req.body
+    const key = folder
+      ? `users/${userId}/${folder}/${req.file.originalname}`
+      : `users/${userId}/${req.file.originalname}`
+
+    // 파일 업로드
+    const uploadInstance = new Upload({
+      client: s3,
+      params: {
+        Bucket: BUCKET,
+        Key: key,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype,
+        ACL: 'public-read'
+      }
+    })
+
+    const result = await uploadInstance.done()
+
+    res.json({
+      success: true,
+      key,
+      url: `https://kr.object.iwinv.kr/${BUCKET}/${key}`,
+      size: req.file.size,
+      currentUsage: currentUsage + req.file.size,
+      remainingBytes: USER_STORAGE_LIMIT - (currentUsage + req.file.size)
+    })
+  } catch (error) {
+    console.error('User upload error:', error)
     res.status(500).json({ error: error.message })
   }
 })
