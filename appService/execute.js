@@ -39,7 +39,7 @@ app.get('/api/health', (req, res) => {
 
 // Catch-all for SPA (production)
 if (env === 'prd') {
-  app.get('*', (req, res) => {
+  app.get('/{*path}', (req, res) => {
     res.sendFile(path.join(__dirname, '../build/index.html'))
   })
 }
